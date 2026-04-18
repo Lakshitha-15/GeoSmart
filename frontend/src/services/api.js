@@ -29,7 +29,5 @@ export const getTopRanked     = (params)   => api.get('/analysis/top-10', { para
 export const getLowCompetition= (params)   => api.get('/analysis/low-competition', { params });
 export const getUnderserved   = (params)   => api.get('/analysis/underserved', { params });
 export const compareTwoLocations = (data)  => api.post('/analysis/compare', data);
-export const getBestLocations = (typeId, params) =>
-  api.get(`/analysis/best-locations/${typeId}`, { params });
 
 export default api;

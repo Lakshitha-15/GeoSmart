@@ -1,8 +1,8 @@
 // src/components/AnalyticsTabs.jsx
 import React, { useState } from 'react';
-import { getTopRanked, getLowCompetition, getUnderserved, getBestLocations } from '../services/api';
+import { getTopRanked, getLowCompetition, getUnderserved } from '../services/api';
 
-const TABS = ['Top Ranked', 'Low Competition', 'Underserved', 'Best Locations'];
+const TABS = ['Top Ranked', 'Low Competition', 'Underserved'];
 
 export default function AnalyticsTabs({ types = [], onHighlight }) {
   const [activeTab,   setActiveTab]   = useState(0);
@@ -29,9 +29,6 @@ export default function AnalyticsTabs({ types = [], onHighlight }) {
           break;
         case 2:
           data = (await getUnderserved({ typeId: selectedType, minPopulation: 2000 })).data;
-          break;
-        case 3:
-          data = (await getBestLocations(selectedType, { top: 10 })).data;
           break;
         default:
           data = [];

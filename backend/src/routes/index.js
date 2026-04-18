@@ -82,14 +82,6 @@ router.post('/analyze',
 
 // ─── Advanced Spatial Queries ─────────────────────────────────
 
-// Best candidate locations
-router.get('/analysis/best-locations/:typeId',
-  param('typeId').isInt(),
-  query('top').optional().isInt({ min: 1, max: 50 }),
-  validate,
-  analysisCtrl.getBestLocations
-);
-
 // Top ranked locations
 router.get('/analysis/top-10',
   query('typeId').optional().isInt(),

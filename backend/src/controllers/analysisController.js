@@ -39,17 +39,6 @@ async function getAnalysisById(req, res, next) {
   }
 }
 
-async function getBestLocations(req, res, next) {
-  try {
-    const { typeId } = req.params;
-    const topN = parseInt(req.query.top) || 10;
-    const results = await analysisService.getBestLocations(parseInt(typeId), topN);
-    res.json({ success: true, data: results, count: results.length });
-  } catch (err) {
-    next(err);
-  }
-}
-
 async function getTopRanked(req, res, next) {
   try {
     const typeId = req.query.typeId ? parseInt(req.query.typeId) : null;
@@ -107,7 +96,6 @@ async function getUnderserved(req, res, next) {
 module.exports = {
   analyzeLocation,
   getAnalysisById,
-  getBestLocations,
   getTopRanked,
   getLowCompetition,
   compareTwoLocations,

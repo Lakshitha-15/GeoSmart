@@ -123,18 +123,6 @@ async function getAnalysisById(requestId) {
 }
 
 /**
- * Get best candidate locations for a business type.
- * Calls find_best_locations() stored function.
- */
-async function getBestLocations(typeId, topN = 10) {
-  const res = await db.query(
-    `SELECT * FROM find_best_locations($1, NULL, $2, 500)`,
-    [typeId, topN]
-  );
-  return res.rows;
-}
-
-/**
  * Get top ranked existing businesses.
  */
 async function getTopRankedLocations(typeId = null, limit = 10) {
@@ -181,7 +169,6 @@ async function getUnderservedAreas(typeId, minPopulation = 3000, maxBusinesses =
 module.exports = {
   analyzeLocation,
   getAnalysisById,
-  getBestLocations,
   getTopRankedLocations,
   getLowCompetitionZones,
   compareTwoLocations,

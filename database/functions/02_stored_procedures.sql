@@ -593,4 +593,105 @@ BEGIN
 END;
 $$;
 
+-- =============================================================
+-- FUNCTION: find_best_locations
+-- =============================================================
+CREATE OR REPLACE FUNCTION find_best_locations(
+    p_type_id   INTEGER,
+    p_lat       NUMERIC,
+    p_lon       NUMERIC,
+    p_radius_m  NUMERIC DEFAULT 1000
+)
+RETURNS TABLE (
+    zone_id            INTEGER,
+    zone_name          VARCHAR,
+    zone_type          TEXT,
+    centroid_lat       NUMERIC,
+    centroid_lon       NUMERIC,
+    business_count     BIGINT,
+    population_density NUMERIC,
+    competition_score  NUMERIC,
+    demand_score       NUMERIC,
+    final_score        NUMERIC
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_point GEOMETRY;
+BEGIN
+    -- Create reference point
+    v_point := ST_SetSRID(ST_MakePoint(p_lon, p_lat), 4326);
+
+    RETURN QUERY
+    WITH zone_candidates AS (
+        SELECT
+            z.zone_id,
+            z.zone_name::VARCHAR,
+            z.zone_type::TEXT,
+            z.population_density,
+            ST_Centroid(z.geom) AS centroid_geom
+        FROM zone z
+        WHERE ST_DWithin(z.geom::geography, v_point::geography, p_radius_m)
+    ),
+
+    business_stats AS (
+        SELECT
+            zc.zone_id,
+            COUNT(b.business_id) AS business_count
+        FROM zone_candidates zc
+        LEFT JOIN business b
+            ON b.type_id = p_type_id
+            AND b.is_active = TRUE
+            AND ST_Within(b.geom, zc.centroid_geom)
+        GROUP BY zc.zone_id
+    ),
+
+    scored AS (
+        SELECT
+            zc.zone_id,
+            zc.zone_name,
+            zc.zone_type,
+            ROUND(ST_Y(zc.centroid_geom)::NUMERIC, 6) AS centroid_lat,
+            ROUND(ST_X(zc.centroid_geom)::NUMERIC, 6) AS centroid_lon,
+            COALESCE(bs.business_count, 0) AS business_count,
+            COALESCE(zc.population_density, 0) AS population_density,
+
+            -- Competition score (less businesses = better)
+            ROUND(
+                GREATEST(0, 100 - COALESCE(bs.business_count, 0) * 15)::NUMERIC,
+            2) AS competition_score,
+
+            -- Demand score (based on population)
+            ROUND(
+                LEAST(100, COALESCE(zc.population_density, 0) / 200.0)::NUMERIC,
+            2) AS demand_score
+
+        FROM zone_candidates zc
+        LEFT JOIN business_stats bs ON zc.zone_id = bs.zone_id
+    )
+
+    SELECT
+        s.zone_id,
+        s.zone_name,
+        s.zone_type,
+        s.centroid_lat,
+        s.centroid_lon,
+        s.business_count,
+        s.population_density,
+        s.competition_score,
+        s.demand_score,
+
+        -- Final score (weighted)
+        ROUND((
+            s.competition_score * 0.6 +
+            s.demand_score      * 0.4
+        )::NUMERIC, 2) AS final_score
+
+    FROM scored s
+    ORDER BY final_score DESC
+    LIMIT 10;
+
+END;
+$$;
+
 SELECT 'Migration 02: Stored procedures created successfully.' AS status;
