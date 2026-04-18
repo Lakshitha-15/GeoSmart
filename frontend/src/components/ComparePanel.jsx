@@ -41,7 +41,7 @@ export default function ComparePanel({ types = [], pendingLocation, onClear, onP
         typeId: parseInt(typeId),
       });
       console.log('Compare result:', data);
-      setResult(data);
+      setResult(data.data); // Access the nested data property
     } catch (err) {
       console.error('Compare error:', err);
       setError(err.message);
