@@ -67,6 +67,7 @@ export default function App() {
   const [flyTarget,      setFlyTarget]      = useState(null);
   const [comparePin,     setComparePin]     = useState(null);
   const [comparePinMode, setComparePinMode] = useState(false);
+  const [compareLocations, setCompareLocations] = useState({ loc1: {}, loc2: {} });
   const [error,          setError]          = useState(null);
 
   // Initial data load
@@ -292,6 +293,50 @@ export default function App() {
                 </Popup>
               </CircleMarker>
             ))}
+
+            {/* Compare location A marker */}
+            {compareLocations.loc1?.lat && compareLocations.loc1?.lon && (
+              <CircleMarker
+                center={[compareLocations.loc1.lat, compareLocations.loc1.lon]}
+                radius={10}
+                pathOptions={{
+                  color:       '#00bcd4',
+                  fillColor:   '#00bcd4',
+                  fillOpacity: 0.5,
+                  weight:      2,
+                  dashArray:   '4 4',
+                }}
+              >
+                <Popup>
+                  <div style={{ fontFamily: 'var(--font-body)' }}>
+                    <strong style={{ color: '#00bcd4' }}>📍 Location A</strong><br />
+                    {compareLocations.loc1.lat.toFixed(4)}, {compareLocations.loc1.lon.toFixed(4)}
+                  </div>
+                </Popup>
+              </CircleMarker>
+            )}
+
+            {/* Compare location B marker */}
+            {compareLocations.loc2?.lat && compareLocations.loc2?.lon && (
+              <CircleMarker
+                center={[compareLocations.loc2.lat, compareLocations.loc2.lon]}
+                radius={10}
+                pathOptions={{
+                  color:       '#ffa500',
+                  fillColor:   '#ffa500',
+                  fillOpacity: 0.5,
+                  weight:      2,
+                  dashArray:   '4 4',
+                }}
+              >
+                <Popup>
+                  <div style={{ fontFamily: 'var(--font-body)' }}>
+                    <strong style={{ color: '#ffa500' }}>📍 Location B</strong><br />
+                    {compareLocations.loc2.lat.toFixed(4)}, {compareLocations.loc2.lon.toFixed(4)}
+                  </div>
+                </Popup>
+              </CircleMarker>
+            )}
           </MapContainer>
 
           {/* Map legend */}
@@ -301,6 +346,8 @@ export default function App() {
             <LegendItem color="var(--accent)" label="Selected type" circle />
             <LegendItem color="#ff5252" label="Competitor" circle />
             <LegendItem color="var(--green)" label="Click marker" circle />
+            <LegendItem color="#00bcd4" label="Location A" circle />
+            <LegendItem color="#ffa500" label="Location B" circle />
             <div style={{ marginTop: '6px', borderTop: '1px solid var(--border)', paddingTop: '6px' }}>
               {Object.entries(ZONE_COLORS).map(([k, v]) => (
                 <LegendItem key={k} color={v} label={k} rect />
@@ -400,6 +447,8 @@ export default function App() {
                 types={types}
                 pendingLocation={comparePin}
                 onClear={() => setComparePin(null)}
+                onPinModeChange={mode => setComparePinMode(!!mode)}
+                onLocationsChange={locs => setCompareLocations(locs)}
               />
             )}
           </div>
